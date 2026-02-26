@@ -19,6 +19,9 @@ import activityRoutes from "./routes/activityRoutes.js";
 
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
+import dns from "dns";
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+console.log("DNS forcibly set to Google Public DNS");
 dotenv.config();
 connectDB();
 

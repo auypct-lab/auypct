@@ -34,12 +34,30 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 
 // ✅ Better CORS (supports both CLIENT_URL and CLIENT_ORIGIN)
+const allowedOrigins = [
+  "https://www.auypctrust.com",
+  "https://auypctrust.com",
+  "http://localhost:5173",
+  "http://localhost:3000",
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || process.env.CLIENT_ORIGIN || "*",
-    credentials: true
+    origin: (origin, cb) => {
+      // allow server-to-server / Postman (no origin)
+      if (!origin) return cb(null, true);
+
+      if (allowedOrigins.includes(origin)) return cb(null, true);
+
+      return cb(new Error(`CORS blocked: ${origin}`));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+app.options("*", cors());
 
 // ✅ logs
 app.use(morgan("dev"));

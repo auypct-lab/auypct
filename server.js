@@ -16,6 +16,9 @@ import statsRoutes from "./routes/statsRoutes.js";
 // ✅ New routes (from my backend)
 import authRoutes from "./routes/authRoutes.js";
 import activityRoutes from "./routes/activityRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
+import courseViewsRoutes from "./routes/courseViewsRoutes.js";
+import courseEnrollRoutes from "./routes/courseEnrollRoutes.js";
 
 import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 
@@ -79,6 +82,9 @@ app.use("/api/stats", statsRoutes);
 // ✅ New APIs
 app.use("/api/auth", authRoutes);
 app.use("/api/activities", activityRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/course-views", courseViewsRoutes);
+app.use("/api/course-enrolls", courseEnrollRoutes);
 
 // ✅ Error handlers
 app.use(notFound);

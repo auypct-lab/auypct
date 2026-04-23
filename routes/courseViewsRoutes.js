@@ -1,26 +1,45 @@
 import express from "express";
+import CourseView from "../models/CourseView.js";
 
 const router = express.Router();
-
-// In-memory store: { slug: count }
-const viewStore = {};
 const GLOBAL_KEY = "__courses__";
 
 // GET /api/course-views?slug=xxx  — fetch count for a slug (or global)
-router.get("/", (req, res) => {
-  const key = req.query.slug || GLOBAL_KEY;
-  res.json({ slug: key, views: viewStore[key] || 0 });
+router.get("/", async (req, res) => {
+  try {
+    const key = req.query.slug || GLOBAL_KEY;
+    const doc = await CourseView.findOne({ slug: key });
+    res.json({ slug: key, views: doc ? doc.views : 0 });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
 });
 
 // POST /api/course-views  — increment { slug } or global
-router.post("/", (req, res) => {
-  const key = req.body?.slug || GLOBAL_KEY;
-  viewStore[key] = (viewStore[key] || 0) + 1;
-  // Also bump global courses counter
-  if (key !== GLOBAL_KEY) {
-    viewStore[GLOBAL_KEY] = (viewStore[GLOBAL_KEY] || 0) + 1;
+router.post("/", async (req, res) => {
+  try {
+    const key = req.body?.slug || GLOBAL_KEY;
+
+    // Upsert the slug view count
+    const doc = await CourseView.findOneAndUpdate(
+      { slug: key },
+      { $inc: { views: 1 } },
+      { upsert: true, new: true }
+    );
+
+    // Also bump global counter (if not already the global key)
+    if (key !== GLOBAL_KEY) {
+      await CourseView.findOneAndUpdate(
+        { slug: GLOBAL_KEY },
+        { $inc: { views: 1 } },
+        { upsert: true, new: true }
+      );
+    }
+
+    res.json({ slug: key, views: doc.views });
+  } catch (err) {
+    res.status(500).json({ message: "Server error", error: err.message });
   }
-  res.json({ slug: key, views: viewStore[key] });
 });
 
 export default router;
